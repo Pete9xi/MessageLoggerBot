@@ -1,7 +1,8 @@
 const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const { prefix, token, logsChannel } = require('./config.json');
-const { MessageContent, GuildMessages, Guilds } = GatewayIntentBits;
-const client = new Client({ intents: [Guilds, GuildMessages, MessageContent] });
+const { MessageContent, GuildMessages, Guilds, MessageReactions } = GatewayIntentBits;
+
+const client = new Client({ intents: [Guilds, GuildMessages, MessageContent, MessageReactions], partials: ['MESSAGE', 'REACTION', 'USER'] });
 
 client.once('ready', () => {
     console.log('I am alive!');
@@ -18,7 +19,6 @@ client.on('messageCreate', message => {
 
     let username = message.author.tag;
     let channel = message.channel.name;
-    let server = message.channel.guild;
     let serverAvatarURL = message.guild.iconURL();
 
     let attachment = Array.from(message.attachments.values());
@@ -82,6 +82,54 @@ client.on("messageDelete", async message => {
     }
 
     client.channels.cache.get(logsChannel).send({ embeds: [embed_delete] });
+});
+
+// Reaction add log
+client.on('messageReactionAdd', async (reaction, user) => {
+    if (user.bot) return;
+
+    if (reaction.partial) {
+        try {
+            await reaction.fetch();
+        } catch (error) {
+            console.error('Error fetching reaction:', error);
+            return;
+        }
+    }
+
+    let embed_reaction_add = new EmbedBuilder()
+        .setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
+        .setColor('#FFB104')
+        .setTitle("Reaction Added")
+        .setDescription(`**Reaction:** ${reaction.emoji}\n**Message:** ${reaction.message.content}`)
+        .setFooter({ text: "#" + reaction.message.channel.name })
+        .setTimestamp();
+
+    client.channels.cache.get(logsChannel).send({ embeds: [embed_reaction_add] });
+});
+
+// Reaction remove log
+client.on('messageReactionRemove', async (reaction, user) => {
+    if (user.bot) return;
+
+    if (reaction.partial) {
+        try {
+            await reaction.fetch();
+        } catch (error) {
+            console.error('Error fetching reaction:', error);
+            return;
+        }
+    }
+
+    let embed_reaction_remove = new EmbedBuilder()
+        .setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
+        .setColor('c11515')
+        .setTitle("Reaction Removed")
+        .setDescription(`**Reaction:** ${reaction.emoji}\n**Message:** ${reaction.message.content}`)
+        .setFooter({ text: "#" + reaction.message.channel.name })
+        .setTimestamp();
+
+    client.channels.cache.get(logsChannel).send({ embeds: [embed_reaction_remove] });
 });
 
 client.login(token);
