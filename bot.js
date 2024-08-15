@@ -1,104 +1,87 @@
-const Discord = require('discord.js');
-const client = new Discord.Client();
+const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
 const { prefix, token, logsChannel } = require('./config.json');
+const { MessageContent, GuildMessages, Guilds } = GatewayIntentBits;
+const client = new Client({ intents: [Guilds, GuildMessages, MessageContent] });
 
 client.once('ready', () => {
-	console.log('I am alive!');
+    console.log('I am alive!');
 });
 
+// Function to check if a collection is empty
+function isEmpty(collection) {
+    return collection.size === 0;
+}
+
 // Messages log
-client.on('message', message => {
-    // Function
-    function isEmpty(collection) {
-        for(var arg in collection) {
-            if(collection.hasOwnProperty(arg))
-                return false;
-        }
-        return true;
-    }
-    // Logs
-    if(message.author.bot) return;
+client.on('messageCreate', message => {
+    if (message.author.bot) return;
+
     let username = message.author.tag;
     let channel = message.channel.name;
     let server = message.channel.guild;
-	var serverAvatarURL = message.guild.iconURL;
-    var attachment = (message.attachments).array();
-    if(isEmpty(attachment)) {
-        var img = "";
-    } else {
-        var img = attachment[0].url;
-    }
-    let embed_send = new Discord.RichEmbed()
-        .setAuthor(username, message.author.avatarURL)
+    let serverAvatarURL = message.guild.iconURL();
+
+    let attachment = Array.from(message.attachments.values());
+    let img = isEmpty(message.attachments) ? null : attachment[0].url;
+
+    let embed_send = new EmbedBuilder()
+        .setAuthor({ name: username, iconURL: message.author.avatarURL() })
         .setColor('23c115')
         .setTitle("Message sent!")
-        .setDescription(message.content + " " + img)
-        .setImage(img)
-        .setFooter("#" + channel)
+        .setDescription(message.content + (img ? " " + img : ""))
+        .setFooter({ text: "#" + channel })
         .setTimestamp();
-    client.channels.get(logsChannel).send(embed_send);
+
+    if (img) {
+        embed_send.setImage(img);
+    }
+
+    client.channels.cache.get(logsChannel).send({ embeds: [embed_send] });
 });
 
 // Message edit log
-client.on("messageUpdate", async(oldMessage, newMessage) => {
-    // Function
-    function isEmpty(collection) {
-        for(var arg in collection) {
-            if(collection.hasOwnProperty(arg))
-                return false;
-        }
-        return true;
-    }
-    // Logs
-    if (oldMessage.content === newMessage.content) {
-        return;
-    }
+client.on("messageUpdate", async (oldMessage, newMessage) => {
+    if (oldMessage.content === newMessage.content) return;
 
-    var attachment = (oldMessage.attachments).array();
-    if(isEmpty(attachment)) {
-        var img = "";
-    } else {
-        var img = attachment[0].url;
-    }
+    let attachment = Array.from(oldMessage.attachments.values());
+    let img = isEmpty(oldMessage.attachments) ? null : attachment[0].url;
 
-    let embed_edit = new Discord.RichEmbed()
-        .setAuthor(oldMessage.author.tag, oldMessage.author.avatarURL)
+    let embed_edit = new EmbedBuilder()
+        .setAuthor({ name: oldMessage.author.tag, iconURL: oldMessage.author.avatarURL() })
         .setColor('2615c1')
-		.setTitle("Message edited!")
-        .addField("Old", oldMessage.content + " " + img, true)
-		.addField("New", newMessage.content + " " + img, true)
-        .setFooter("#" + oldMessage.channel.name)
+        .setTitle("Message edited!")
+        .addFields(
+            { name: "Old", value: oldMessage.content + (img ? " " + img : ""), inline: true },
+            { name: "New", value: newMessage.content + (img ? " " + img : ""), inline: true }
+        )
+        .setFooter({ text: "#" + oldMessage.channel.name })
         .setTimestamp();
-    client.channels.get(logsChannel).send(embed_edit);
+
+    if (img) {
+        embed_edit.setImage(img);
+    }
+
+    client.channels.cache.get(logsChannel).send({ embeds: [embed_edit] });
 });
 
 // Message delete log
 client.on("messageDelete", async message => {
-    // Function
-    function isEmpty(collection) {
-        for(var arg in collection) {
-            if(collection.hasOwnProperty(arg))
-                return false;
-        }
-        return true;
-    }
-    // Logs
-    var attachment = (message.attachments).array();
-    if(isEmpty(attachment)) {
-        var img = "";
-    } else {
-        var img = attachment[0].url;
+    let attachment = Array.from(message.attachments.values());
+    let img = isEmpty(message.attachments) ? null : attachment[0].url;
+
+    let embed_delete = new EmbedBuilder()
+        .setAuthor({ name: message.author.tag, iconURL: message.author.avatarURL() })
+        .setColor('c11515')
+        .setTitle("Message deleted!")
+        .setDescription(message.content + (img ? " " + img : ""))
+        .setFooter({ text: "#" + message.channel.name })
+        .setTimestamp();
+
+    if (img) {
+        embed_delete.setImage(img);
     }
 
-    let embed_delete = new Discord.RichEmbed()
-    .setAuthor(message.author.tag, message.author.avatarURL)
-    .setColor('c11515')
-    .setTitle("Message deleted!")
-    .setDescription(message.content + " " + img)
-    .setImage(img)
-    .setFooter("#" + message.channel.name)
-    .setTimestamp();    
-    client.channels.get(logsChannel).send(embed_delete);
+    client.channels.cache.get(logsChannel).send({ embeds: [embed_delete] });
 });
 
 client.login(token);
