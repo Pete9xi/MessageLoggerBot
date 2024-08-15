@@ -1,10 +1,10 @@
 {
   "name": "messagelogger",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "bot.js",
   "dependencies": {
-    "discord.js": "^11.5.1",
+    "discord.js": "^14.15.3",
     "discord.js-image-logger": "^1.1.0"
   },
   "devDependencies": {},
@@ -17,6 +17,6 @@
     "logger",
     "bot"
   ],
-  "author": "FrachlitzStudio#0392",
+  "author": "FrachlitzStudio#0392, Pete9xi",
   "license": "ISC"
 }
