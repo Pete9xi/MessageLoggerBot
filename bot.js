@@ -1,25 +1,30 @@
-const { Client, GatewayIntentBits, EmbedBuilder } = require("discord.js");
-const { prefix, token, logsChannel } = require('./config.json');
-const { MessageContent, GuildMessages, Guilds, MessageReactions } = GatewayIntentBits;
+const { Client, GatewayIntentBits, EmbedBuilder, Partials } = require("discord.js");
+const { token, logsChannel } = require('./config.json');
 
-const client = new Client({ intents: [Guilds, GuildMessages, MessageContent, MessageReactions], partials: ['MESSAGE', 'REACTION', 'USER'] });
+const client = new Client({ 
+    intents: [
+        GatewayIntentBits.Guilds, 
+        GatewayIntentBits.GuildMessages, 
+        GatewayIntentBits.MessageContent, 
+        GatewayIntentBits.GuildMessageReactions
+    ],
+    partials: [Partials.Message, Partials.Reaction, Partials.User] 
+});
 
 client.once('ready', () => {
     console.log('I am alive!');
 });
 
-// Function to check if a collection is empty
 function isEmpty(collection) {
     return collection.size === 0;
 }
 
-// Messages log
+// Log messages
 client.on('messageCreate', message => {
     if (message.author.bot) return;
 
     let username = message.author.tag;
     let channel = message.channel.name;
-    let serverAvatarURL = message.guild.iconURL();
 
     let attachment = Array.from(message.attachments.values());
     let img = isEmpty(message.attachments) ? null : attachment[0].url;
@@ -39,7 +44,7 @@ client.on('messageCreate', message => {
     client.channels.cache.get(logsChannel).send({ embeds: [embed_send] });
 });
 
-// Message edit log
+// Log message edits
 client.on("messageUpdate", async (oldMessage, newMessage) => {
     if (oldMessage.content === newMessage.content) return;
 
@@ -64,7 +69,7 @@ client.on("messageUpdate", async (oldMessage, newMessage) => {
     client.channels.cache.get(logsChannel).send({ embeds: [embed_edit] });
 });
 
-// Message delete log
+// Log message deletes
 client.on("messageDelete", async message => {
     let attachment = Array.from(message.attachments.values());
     let img = isEmpty(message.attachments) ? null : attachment[0].url;
@@ -84,7 +89,7 @@ client.on("messageDelete", async message => {
     client.channels.cache.get(logsChannel).send({ embeds: [embed_delete] });
 });
 
-// Reaction add log
+// Log reaction additions
 client.on('messageReactionAdd', async (reaction, user) => {
     if (user.bot) return;
 
@@ -99,7 +104,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
     let embed_reaction_add = new EmbedBuilder()
         .setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
-        .setColor('#FFB104')
+        .setColor('23c115')
         .setTitle("Reaction Added")
         .setDescription(`**Reaction:** ${reaction.emoji}\n**Message:** ${reaction.message.content}`)
         .setFooter({ text: "#" + reaction.message.channel.name })
@@ -108,7 +113,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
     client.channels.cache.get(logsChannel).send({ embeds: [embed_reaction_add] });
 });
 
-// Reaction remove log
+// Log reaction removals
 client.on('messageReactionRemove', async (reaction, user) => {
     if (user.bot) return;
 
