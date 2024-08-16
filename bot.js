@@ -1,6 +1,5 @@
 const { Client, GatewayIntentBits, EmbedBuilder, Partials } = require("discord.js");
-const { token, logsChannel, excludedChannels } = require('./config.json');
-
+const { token, logsChannel, excludedChannels } = require('./config');
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds, 
@@ -52,7 +51,8 @@ client.on('messageCreate', message => {
 // Log message edits
 client.on("messageUpdate", async (oldMessage, newMessage) => {
     if (oldMessage.content === newMessage.content) return;
-    if (!shouldLogChannel(message.channel.id)) return;
+    if (!oldMessage.author || !newMessage.author) return;
+    if (!shouldLogChannel(newMessage.channel.id)) return;
 
     let attachment = Array.from(oldMessage.attachments.values());
     let img = isEmpty(oldMessage.attachments) ? null : attachment[0].url;
