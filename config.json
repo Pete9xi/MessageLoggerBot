@@ -1,4 +1,5 @@
 {
     "token": "BOT TOKEN",
-    "logsChannel": "CHANNEL ID"
+    "logsChannel": "CHANNEL ID",
+    "excludedChannels": []
 }

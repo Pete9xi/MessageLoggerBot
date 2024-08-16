@@ -1,5 +1,5 @@
 const { Client, GatewayIntentBits, EmbedBuilder, Partials } = require("discord.js");
-const { token, logsChannel } = require('./config.json');
+const { token, logsChannel, excludedChannels } = require('./config.json');
 
 const client = new Client({ 
     intents: [
@@ -19,9 +19,14 @@ function isEmpty(collection) {
     return collection.size === 0;
 }
 
+function shouldLogChannel(channelId) {
+    return !excludedChannels.includes(channelId);
+}
+
 // Log messages
 client.on('messageCreate', message => {
     if (message.author.bot) return;
+    if (!shouldLogChannel(message.channel.id)) return;
 
     let username = message.author.tag;
     let channel = message.channel.name;
@@ -47,6 +52,7 @@ client.on('messageCreate', message => {
 // Log message edits
 client.on("messageUpdate", async (oldMessage, newMessage) => {
     if (oldMessage.content === newMessage.content) return;
+    if (!shouldLogChannel(message.channel.id)) return;
 
     let attachment = Array.from(oldMessage.attachments.values());
     let img = isEmpty(oldMessage.attachments) ? null : attachment[0].url;
@@ -71,6 +77,7 @@ client.on("messageUpdate", async (oldMessage, newMessage) => {
 
 // Log message deletes
 client.on("messageDelete", async message => {
+    if (!shouldLogChannel(message.channel.id)) return;
     let attachment = Array.from(message.attachments.values());
     let img = isEmpty(message.attachments) ? null : attachment[0].url;
 
@@ -91,6 +98,7 @@ client.on("messageDelete", async message => {
 
 // Log reaction additions
 client.on('messageReactionAdd', async (reaction, user) => {
+    if (!shouldLogChannel(reaction.message.channel.id)) return;
     if (user.bot) return;
 
     if (reaction.partial) {
@@ -115,6 +123,7 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
 // Log reaction removals
 client.on('messageReactionRemove', async (reaction, user) => {
+    if (!shouldLogChannel(reaction.message.channel.id)) return;
     if (user.bot) return;
 
     if (reaction.partial) {
