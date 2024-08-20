@@ -1,6 +1,6 @@
 const { Client, GatewayIntentBits, EmbedBuilder, Partials } = require("discord.js");
-const { token, logsChannel, excludedChannels, roleIds } = require('./config');
-const responses = require('./responses');
+const { token, logsChannel, excludedChannels, roleIds, helpChannelId  } = require('./config');
+const createResponses = require('./responses');
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds, 
@@ -10,6 +10,8 @@ const client = new Client({
     ],
     partials: [Partials.Message, Partials.Reaction, Partials.User] 
 });
+// Create responses with the configuration values
+const responses = createResponses();
 
 client.once('ready', () => {
     console.log('I am alive!');
