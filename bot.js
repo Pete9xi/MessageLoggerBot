@@ -5,7 +5,8 @@ const client = new Client({
         GatewayIntentBits.Guilds, 
         GatewayIntentBits.GuildMessages, 
         GatewayIntentBits.MessageContent, 
-        GatewayIntentBits.GuildMessageReactions
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildMembers
     ],
     partials: [Partials.Message, Partials.Reaction, Partials.User] 
 });
@@ -144,6 +145,25 @@ client.on('messageReactionRemove', async (reaction, user) => {
         .setTimestamp();
 
     client.channels.cache.get(logsChannel).send({ embeds: [embed_reaction_remove] });
+});
+
+// Log when the bot is triggered
+client.on('interactionCreate', async interaction => {
+    if (!shouldLogChannel(interaction.channelId)) return;
+    
+    let user = interaction.user;
+    let interactionType = interaction.type;
+    let interactionName = interaction.commandName || interaction.customId || "Unknown Interaction";
+    
+    let embed_interaction = new EmbedBuilder()
+        .setAuthor({ name: user.tag, iconURL: user.displayAvatarURL() })
+        .setColor('ff9900')
+        .setTitle("Bot Interaction Detected")
+        .setDescription(`**Interaction:** ${interactionType}\n**Command/Action:** ${interactionName}`)
+        .setFooter({ text: "#" + interaction.channel.name })
+        .setTimestamp();
+
+    client.channels.cache.get(logsChannel).send({ embeds: [embed_interaction] });
 });
 
 client.login(token);
