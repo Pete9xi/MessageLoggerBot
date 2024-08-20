@@ -1,7 +1,9 @@
 const config = {
     token: "BOT TOKEN",
     logsChannel: "CHANNEL ID",
-    excludedChannels: []
+    helpChannelId: "CHANNEL ID",
+    excludedChannels: [],
+    roleIds: []
 };
 
 module.exports = config;

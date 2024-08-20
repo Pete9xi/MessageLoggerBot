@@ -1,5 +1,6 @@
 const { Client, GatewayIntentBits, EmbedBuilder, Partials } = require("discord.js");
-const { token, logsChannel, excludedChannels } = require('./config');
+const { token, logsChannel, excludedChannels, roleIds } = require('./config');
+const responses = require('./responses');
 const client = new Client({ 
     intents: [
         GatewayIntentBits.Guilds, 
@@ -22,10 +23,32 @@ function shouldLogChannel(channelId) {
     return !excludedChannels.includes(channelId);
 }
 
+async function checkForKeyPhrases(message) {
+    if (message.author.bot) return;
+
+    
+    const member = await message.guild.members.fetch(message.author.id);
+    
+    
+    const hasRole = roleIds.some(roleId => member.roles.cache.has(roleId));
+    if (hasRole) return; 
+
+    
+    for (const [phrase, response] of Object.entries(responses)) {
+        if (message.content.toLowerCase().includes(phrase)) {
+            if (message.channel.id !== helpChannelId) {
+                message.reply(response);
+            }
+            break;
+        }
+    }
+}
+
 // Log messages
 client.on('messageCreate', message => {
     if (message.author.bot) return;
     if (!shouldLogChannel(message.channel.id)) return;
+    checkForKeyPhrases(message);
 
     let username = message.author.tag;
     let channel = message.channel.name;
